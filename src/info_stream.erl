@@ -11,7 +11,7 @@ get_info(Parent, Filename) ->
                 	io:format(JsonBody),
                 	DecodeJSON = jiffy:decode(JsonBody),
 	            	Json = ej:get({"results"}, DecodeJSON),
-	            	io:format(binary_to_list(Json)),
+	            	io:format(lists:flatten(io_lib:format("~p",Json))),
 	            	Subject = "",
 	            	%%io:format( lists:flatten(UserJSON)),
 	            	%%{_UN, Subject}   = lists:keyfind(<<"Subject">>, 1, UserJSON),
