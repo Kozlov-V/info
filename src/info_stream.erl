@@ -1,8 +1,28 @@
 -module(info_stream).
--export([get_info/2]).
+-export([get_info/1, process_get_info/2]).
 
-get_info(Parent, Filename) ->
- 	case hackney:request(get, "http://api.vide.me/file/info/?file=922b906ef5c7b642", [], <<>>, [{pool, default}]) of
+get_info(FileName) ->
+io:format(FileName),
+P = spawn(info_stream, process_get_info, [self(), FileName]),
+	receive
+		{SubjectBin, MessageBin, CreatedAtBin, P} ->
+	 		exit(P, kill),
+			{SubjectBin, MessageBin, CreatedAtBin};
+		{"ERROR", P} ->
+			{<<"">>, <<"">>, <<"">>}
+	after 
+	 	10000 ->
+	 		io:format("Error request"),
+	 		exit(P, kill),
+			{<<"">>, <<"">>, <<"">>} 
+	end.
+
+%% Stream Process to getting Info
+process_get_info(Parent, FileName) ->
+io:format(FileName),
+ 	case hackney:request(get, lists:append(["http://api.vide.me/file/info/?",
+											"file=", FileName]), 
+																[], <<>>, [{pool, default}]) of
         {ok, Status, RespHeaders, Client} ->
             case Status of
                 200 ->
@@ -10,17 +30,10 @@ get_info(Parent, Filename) ->
                 	{ok, JsonBody} = hackney:body(Client),
                 	io:format(JsonBody),
                 	DecodeJSON = jiffy:decode(JsonBody),
-	            	Json = ej:get({"Subject"}, DecodeJSON),
-	            	io:format(lists:flatten(io_lib:format("~p",Json))),
-	            	Subject = lists:flatten(Json),
-	            	%%io:format( lists:flatten(UserJSON)),
-	            	%%{_UN, Subject}   = lists:keyfind(<<"Subject">>, 1, UserJSON),
-	            	case Subject == undefined of
-	            		true  -> 
-	            			Subject = ""
-	            	end,
-
-                   	Parent ! {Subject, self()};
+	            	SubjectBin   = ej:get({"results", 1, "Subject"},   DecodeJSON),
+					MessageBin   = ej:get({"results", 1, "Message"},   DecodeJSON),
+					CreatedAtBin = ej:get({"results", 1, "createdAt"}, DecodeJSON),
+					Parent ! {SubjectBin, MessageBin, CreatedAtBin, self()};
                 _   ->
                     Parent ! {"ERROR", self()}
             end;                                               
