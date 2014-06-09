@@ -10,9 +10,9 @@ get_info(Parent, Filename) ->
                 	{ok, JsonBody} = hackney:body(Client),
                 	io:format(JsonBody),
                 	DecodeJSON = jiffy:decode(JsonBody),
-	            	Json = ej:get({"results"}, DecodeJSON),
+	            	Json = ej:get({"Subject"}, DecodeJSON),
 	            	io:format(lists:flatten(io_lib:format("~p",Json))),
-	            	Subject = "",
+	            	Subject = lists:flatten(Json),
 	            	%%io:format( lists:flatten(UserJSON)),
 	            	%%{_UN, Subject}   = lists:keyfind(<<"Subject">>, 1, UserJSON),
 	            	case Subject == undefined of
