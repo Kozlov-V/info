@@ -5,9 +5,9 @@ get_info(FileName) ->
 io:format(FileName),
 P = spawn(info_stream, process_get_info, [self(), FileName]),
 	receive
-		{SubjectBin, MessageBin, CreatedAtBin, P} ->
+		{SubjectBin, MessageBin, UpdateAtBin, P} ->
 	 		exit(P, kill),
-			{SubjectBin, MessageBin, CreatedAtBin};
+			{SubjectBin, MessageBin, UpdateAtBin};
 		{"ERROR", P} ->
 			{<<"">>, <<"">>, <<"">>}
 	after 
@@ -32,8 +32,8 @@ io:format(FileName),
                 	DecodeJSON = jiffy:decode(JsonBody),
 	            	SubjectBin   = ej:get({"results", 1, "Subject"},   DecodeJSON),
 					MessageBin   = ej:get({"results", 1, "Message"},   DecodeJSON),
-					CreatedAtBin = ej:get({"results", 1, "createdAt"}, DecodeJSON),
-					Parent ! {SubjectBin, MessageBin, CreatedAtBin, self()};
+					UpdateAtBin = ej:get({"results", 1, "updateAt"}, DecodeJSON),
+					Parent ! {SubjectBin, MessageBin, UpdateAtBin, self()};
                 _   ->
                     Parent ! {"ERROR", self()}
             end;                                               
