@@ -20,7 +20,7 @@ P = spawn(info_stream, process_get_info, [self(), MessageID]),
 %% Stream Process to getting Info
 process_get_info(Parent, MessageID) ->
 io:format(MessageID),
- 	case hackney:request(get, lists:append(["http://api.vide.me/file/info/?",
+ 	case hackney:request(get, lists:append(["http://api.vide.me/file/messageinfo/?",
 											"messageid=", MessageID]), 
 																[], <<>>, [{pool, default}]) of
         {ok, Status, RespHeaders, Client} ->
