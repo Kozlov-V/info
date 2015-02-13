@@ -1,9 +1,9 @@
 -module(info_stream).
 -export([get_info/1, process_get_info/2]).
 
-get_info(FileName) ->
-io:format(FileName),
-P = spawn(info_stream, process_get_info, [self(), FileName]),
+get_info(MessageID) ->
+io:format(MessageID),
+P = spawn(info_stream, process_get_info, [self(), MessageID]),
 	receive
 		{SubjectBin, MessageBin, UpdateAtBin, P} ->
 	 		exit(P, kill),
@@ -18,10 +18,10 @@ P = spawn(info_stream, process_get_info, [self(), FileName]),
 	end.
 
 %% Stream Process to getting Info
-process_get_info(Parent, FileName) ->
-io:format(FileName),
+process_get_info(Parent, MessageID) ->
+io:format(MessageID),
  	case hackney:request(get, lists:append(["http://api.vide.me/file/info/?",
-											"file=", FileName]), 
+											"messageid=", MessageID]), 
 																[], <<>>, [{pool, default}]) of
         {ok, Status, RespHeaders, Client} ->
             case Status of
